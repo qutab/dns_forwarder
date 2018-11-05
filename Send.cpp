@@ -4,24 +4,24 @@
 
 namespace comm {
 
-Send::Send(const Socket& rSockP, EndPoint& rDestP, std::vector<uint8_t>& rBufferP)
-  : Transact(rSockP, rDestP, rBufferP)
+Send::Send(const Socket& rSockP, EndPoint& rDestP)
+  : Transact(rSockP, rDestP)
 {
 }
 
-int Send::operator ()()
+int Send::operator ()(std::vector<uint8_t>& rBufferP)
 {
     auto dstAddr = rEndPointM.addr();
     socklen_t dstAddrLen = sizeof(dstAddr);
 
     ssize_t count = sendto(rSockM,
-        rBufferM.data(),
-        rBufferM.size(),
+        rBufferP.data(),
+        rBufferP.size(),
         0,
         (struct sockaddr*)&dstAddr,
         dstAddrLen);
 
-    helpers::exitIfError(count < 0, "send failed");
+    log::logIfError(count < 0, "send failed");
 
     return count;
 }

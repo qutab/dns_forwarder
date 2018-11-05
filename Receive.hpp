@@ -8,10 +8,10 @@ namespace comm {
 class Receive : public Transact
 {
 public:
-    Receive(const Socket& rSockP, EndPoint& rSenderP, std::vector<uint8_t>& rBufferP);
+    Receive(const Socket& rSockP, EndPoint& rSenderP);
     ~Receive() = default;
 
-    int operator()() override;
+    int operator()(std::vector<uint8_t>& rBufferP) override;
 
     /** Prevent copy construction and copy assignment */
     Receive(const Receive&) = delete;

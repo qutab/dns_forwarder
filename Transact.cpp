@@ -2,10 +2,9 @@
 
 namespace comm {
 
-Transact::Transact(const Socket& rSockP, EndPoint& rEndPointP, std::vector<uint8_t>& rBufferP)
+Transact::Transact(const Socket& rSockP, EndPoint& rEndPointP)
   : rSockM(rSockP),
-    rEndPointM(rEndPointP),
-    rBufferM(rBufferP)
+    rEndPointM(rEndPointP)
 {
 }
 

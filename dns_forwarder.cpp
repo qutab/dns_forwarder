@@ -7,12 +7,16 @@
 #include <cassert>
 #include <vector>
 #include <memory>
+#include <utility>
 
 #include "Socket.hpp"
 #include "Connection.hpp"
 #include "EndPoint.hpp"
 #include "Receive.hpp"
 #include "Send.hpp"
+#include "ProtocolParser.hpp"
+#include "ProtocolValidator.hpp"
+
 
 void sigint_handler(int)
 {
@@ -38,36 +42,19 @@ int main(int argc, char** argv)
     comm::EndPoint fwdingEndPoint{"127.0.0.1", 9000};
     comm::Socket fwdingSock{fwdingEndPoint};
 
-    while (true)
-    {
-        std::vector<uint8_t> buffer(549);
+    comm::EndPoint upStreamEndPoint{upstreamIP, upstreamPort};
+    dns::ProtocolValidator validator;
+    dns::ProtocolParser parser;
+    comm::Connection conn{fwdingSock, upStreamEndPoint, validator};
+    conn.subscribe(
+        [&parser, &validator](auto data)
+        {
+            parser.parse(std::move(data));
+            validator.setId(parser.getTransId());
+        }
+    );
 
-        // Receive from downstream
-        comm::EndPoint downStreamEndPoint{"", 0};
-        comm::Receive recvDown{fwdingSock, downStreamEndPoint, buffer};
-        comm::Connection connRecvDown{recvDown};
-        connRecvDown.transact();
-
-        // Forward to upstream
-        comm::EndPoint upstrEndPoint{upstreamIP, upstreamPort};
-        comm::Send sendUp{fwdingSock, upstrEndPoint, buffer};
-        comm::Connection connSendUp{sendUp};
-        connSendUp.transact();
-
-        //re-use the same buffer
-        buffer.resize(549);
-
-        // Receive response from upstream
-        comm::EndPoint upStreamEndPoint{"", 0};
-        comm::Receive recvUp{fwdingSock, upStreamEndPoint, buffer};
-        comm::Connection connRecvUp{recvUp};
-        connRecvUp.transact();
-
-        // Send response to downstream
-        comm::Send sendDown{fwdingSock, downStreamEndPoint, buffer};
-        comm::Connection connSendDown{sendDown};
-        connSendDown.transact();
-    }
+    conn.start();
 
     return EXIT_SUCCESS;
 }
