@@ -3,6 +3,7 @@
 #include "Helpers.hpp"
 
 #include <arpa/inet.h>
+#include <sys/types.h>
 
 namespace comm {
 
@@ -23,5 +24,12 @@ Socket::operator int() const
 {
     return sockFdM;
 }
+
+void Socket::connect(EndPoint ep)
+{
+    auto addr = ep.addr();
+    ::connect(sockFdM, (struct sockaddr*) &addr, sizeof(addr));
+}
+
 
 } /* namespace comm */

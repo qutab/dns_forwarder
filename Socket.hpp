@@ -22,6 +22,8 @@ public:
     /** @return socket file descriptor via implicit conversion */
     operator int() const;
 
+    void connect(EndPoint ep);
+
     /** Prevent copy construction and copy assignment */
     Socket(const Socket&) = delete;
     Socket& operator=(const Socket&) = delete;

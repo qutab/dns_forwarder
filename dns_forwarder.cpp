@@ -5,10 +5,14 @@
 #include <string.h>
 #include <unistd.h>
 #include <cassert>
+#include <vector>
+#include <memory>
 
 #include "Socket.hpp"
 #include "Connection.hpp"
 #include "EndPoint.hpp"
+#include "Receive.hpp"
+#include "Send.hpp"
 
 void sigint_handler(int)
 {
@@ -23,7 +27,7 @@ int main(int argc, char** argv)
     action.sa_handler = sigint_handler;
     sigaction(SIGINT, &action, NULL);
 
-     std::cout << argc << std::endl;
+    std::cout << argc << std::endl;
     std::cout << argv[1] << std::endl;
     std::cout << argv[2] << std::endl;
     assert(std::cout.good());
@@ -31,22 +35,39 @@ int main(int argc, char** argv)
     std::string upstreamIP(argv[1]);
     std::string upstreamPort(argv[2]);
 
-    comm::EndPoint fwdEndPoint{"127.0.0.1", 9000};
-    comm::Socket fwdSock{fwdEndPoint};
-    comm::Connection fwdConn{fwdSock};
+    comm::EndPoint fwdingEndPoint{"127.0.0.1", 9000};
+    comm::Socket fwdingSock{fwdingEndPoint};
+
     while (true)
     {
-        fwdConn.recv();
-        auto originalSender = fwdConn.getLatestSender();
+        std::vector<uint8_t> buffer(549);
 
-        comm::Connection upStreamConn{fwdSock, comm::EndPoint{upstreamIP, upstreamPort}};
-        upStreamConn.setData(fwdConn.getData());
-        upStreamConn.send();
+        // Receive from downstream
+        comm::EndPoint downStreamEndPoint{"", 0};
+        comm::Receive recvDown{fwdingSock, downStreamEndPoint, buffer};
+        comm::Connection connRecvDown{recvDown};
+        connRecvDown.transact();
 
-        fwdConn.recv();
-        comm::Connection downStreamConn{fwdSock, originalSender};
-        downStreamConn.setData(fwdConn.getData());
-        downStreamConn.send();
+        // Forward to upstream
+        comm::EndPoint upstrEndPoint{upstreamIP, upstreamPort};
+        comm::Send sendUp{fwdingSock, upstrEndPoint, buffer};
+        comm::Connection connSendUp{sendUp};
+        connSendUp.transact();
+
+        //re-use the same buffer
+        buffer.resize(549);
+
+        // Receive response from upstream
+        comm::EndPoint upStreamEndPoint{"", 0};
+        comm::Receive recvUp{fwdingSock, upStreamEndPoint, buffer};
+        comm::Connection connRecvUp{recvUp};
+        connRecvUp.transact();
+
+        // Send response to downstream
+        comm::Send sendDown{fwdingSock, downStreamEndPoint, buffer};
+        comm::Connection connSendDown{sendDown};
+        connSendDown.transact();
     }
+
     return EXIT_SUCCESS;
 }

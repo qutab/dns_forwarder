@@ -3,37 +3,28 @@
 //TODO: FWD Declare
 #include "Socket.hpp"
 #include "EndPoint.hpp"
+#include "Transact.hpp"
 
+#include <vector>
 #include <memory>
 
 namespace comm {
 
-/** Represents a network connection over which data can be sent and recieved */
+/** Represents a network connection over which data can be sent and received */
 class Connection final
 {
 public:
-    /** @param rSockP Socket reference for the connection*/
-    Connection(const Socket& rSockP);
-
     /**
      * @param rSockP Socket reference for the connection
-     * @param rEndPointP for sending data
+     * @param rEndPointP for sending/receiving data
      */
-    Connection(const Socket& rSockP, const EndPoint& rEndPointP);
+    Connection(Transact& rTransactP);
     ~Connection();
 
-    /** Receive data from remote endpoint */
-    void recv();
-    /** Send data to remote endpoint */
-    void send();
+    void transact();
 
-    /** @return pointer to internal data buffer */
-    uint8_t* getData();
-    /** set @a pDataP as the pointer to internal data buffer*/
-    void setData(uint8_t* pDataP);
-
-    /** @return EndPoint for latest received data */
-    EndPoint getLatestSender() const;
+    /** @return data buffer */
+    std::vector<uint8_t> getData() const;
 
     /** Prevent copy construction and copy assignment */
     Connection(const Connection&) = delete;
