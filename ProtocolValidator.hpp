@@ -4,12 +4,15 @@
 
 namespace dns {
 
-/** This class responsible for detecting error conditions based on the parsed packet fields */
-class ProtocolValidator
+/**
+ * This class is responsible for detecting error conditions
+ * based on the parsed packet fields
+ */
+class ProtocolValidator final
 {
 public:
     ProtocolValidator();
-    virtual ~ProtocolValidator();
+    ~ProtocolValidator();
 
     void setId(uint16_t idP);
 

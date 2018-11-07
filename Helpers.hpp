@@ -1,16 +1,30 @@
 #pragma once
 
-#include <stdio.h>
-#include <cstdlib>
+#include <iostream>
 
 namespace log {
 
-static void logIfError(bool errCondP, const char* pErrorMsgP)
+/** Log system error if there is any */
+void logSystemError(bool errCondP, const char* pErrorMsgP);
+/** Log error */
+void logError(const char* pMsgP);
+/** Log warning */
+void logWarn(const char* pMsgP);
+/** Log info */
+void logInfo(const char* pMsgP);
+
+/** Log info. Can be used with IO manipulators */
+template<typename Manip, typename Msg>
+void logInfo(Manip&& rManipP, Msg&& rMsgP);
+
+template<typename Manip, typename Msg>
+void logInfo(Manip&& rManipP, Msg&& rMsgP)
 {
-    if (errCondP)
-    {
-        perror(pErrorMsgP);
-    }
+    std::cout <<
+        std::forward<decltype(rManipP)>(rManipP) <<
+        std::forward<decltype(rMsgP)>(rMsgP) <<
+        std::endl;
+    std::cout.clear();
 }
 
-} /** namespace helpers */
+} /** namespace log */

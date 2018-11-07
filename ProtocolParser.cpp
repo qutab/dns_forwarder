@@ -4,14 +4,16 @@
 #include <cstring>
 #include <netinet/in.h>
 
+#include "Helpers.hpp"
+
 namespace dns {
 
 void dns::ProtocolParser::parse(std::vector<uint8_t> bufferP)
 {
     uint16_t transId;
     memcpy(&transId, bufferP.data(), sizeof(transId));
-    std::cout << std::hex << "ID: " << htons(transId) << std::endl;
     transIdM = htons(transId);
+    log::logInfo(std::hex, transIdM);
 }
 
 uint16_t ProtocolParser::getTransId() const

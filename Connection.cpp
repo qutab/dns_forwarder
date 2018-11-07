@@ -1,16 +1,13 @@
 #include "Connection.hpp"
 
-#include <arpa/inet.h>
-#include <sys/types.h>
-#include <iostream>
-#include <cassert>
-#include <unistd.h>
-#include <cstring>
-#include <sstream>
-#include <vector>
-
+#include "EndPoint.hpp"
+#include "Helpers.hpp"
+#include "ProtocolValidator.hpp"
 #include "Receive.hpp"
 #include "Send.hpp"
+#include "Socket.hpp"
+
+#include <vector>
 
 namespace comm {
 
@@ -20,28 +17,75 @@ constexpr unsigned int RECV_BUFFER_SIZE = 549;
 
 } // anonymous namespace
 
+/** Class to hide implementation */
 class Connection::Impl
 {
 public:
-    Impl()
+    Impl(const Socket& rSockP,
+        EndPoint sendUsP,
+        const dns::ProtocolValidator& rValidatorP,
+        std::vector<PublisherAbs::CallBack> callbacksP)
+      : rSockM(rSockP),
+        recvDsM("", 0),
+        sendUsM(sendUsP),
+        recvUsM("", 0),
+        rValidatorM(rValidatorP),
+        callbacksM(std::move(callbacksP))
     {
+        bufferM.resize(RECV_BUFFER_SIZE);
     }
+    void start();
+    void notify();
 
-    void transact()
+private:
+    void eventLoop();
+
+    void stateReceiveDs();
+    void stateSendUs();
+    void stateReceiveUs();
+    void stateSendDs();
+
+    int transact(Transact& rTransactP);
+
+    std::vector<uint8_t> bufferM;
+
+    enum class State
     {
-    }
+        IDLE,
+        RECV_DS,
+        SEND_US,
+        RECV_US,
+        SEND_DS
+    };
+    State stateM{State::IDLE};
+    const Socket& rSockM;
+
+    EndPoint recvDsM;
+    EndPoint sendUsM;
+    EndPoint recvUsM;
+
+    const dns::ProtocolValidator& rValidatorM;
+    std::vector<CallBack> callbacksM;
 };
 
 Connection::Connection(const Socket& rSockP, EndPoint sendUsP, const dns::ProtocolValidator& rValidatorP)
-  : rSockM(rSockP), recvDsM("", 0), sendUsM(sendUsP), recvUsM("", 0), rValidatorM(rValidatorP)
 {
-    bufferM.resize(RECV_BUFFER_SIZE);
+    pImplM = std::make_unique<Impl>(rSockP, sendUsP, rValidatorP, callbacksM);
 }
-
 
 Connection::~Connection() = default;
 
 void Connection::start()
+{
+    pImplM->start();
+}
+
+void Connection::notify()
+{
+    pImplM->notify();
+}
+
+void Connection::Impl::start()
 {
     while (true)
     {
@@ -49,7 +93,7 @@ void Connection::start()
     }
 }
 
-void Connection::eventLoop()
+void Connection::Impl::eventLoop()
 {
     switch (stateM)
     {
@@ -69,13 +113,15 @@ void Connection::eventLoop()
             stateSendDs();
             break;
         default:
-            std::cerr << "[ERR] Unknown state";
+        {
+            log::logError("Unknown state");
             stateM = State::IDLE;
             break;
+        }
     }
 }
 
-void Connection::stateReceiveDs()
+void Connection::Impl::stateReceiveDs()
 {
     Receive recvDown{rSockM, recvDsM};
     const auto ret = transact(recvDown);
@@ -90,7 +136,7 @@ void Connection::stateReceiveDs()
     }
 }
 
-void Connection::stateSendUs()
+void Connection::Impl::stateSendUs()
 {
     Send sendUp{rSockM, sendUsM};
     const auto ret = transact(sendUp);
@@ -105,7 +151,7 @@ void Connection::stateSendUs()
     }
 }
 
-void Connection::stateReceiveUs()
+void Connection::Impl::stateReceiveUs()
 {
     Receive recvUs{rSockM, recvUsM};
     const auto ret = transact(recvUs);
@@ -121,7 +167,7 @@ void Connection::stateReceiveUs()
     }
 }
 
-void Connection::stateSendDs()
+void Connection::Impl::stateSendDs()
 {
     Send sendDs{rSockM, recvDsM};
     transact(sendDs);
@@ -129,14 +175,14 @@ void Connection::stateSendDs()
     stateM = State::RECV_DS;
 }
 
-int Connection::transact(Transact& rTransactP)
+int Connection::Impl::transact(Transact& rTransactP)
 {
     auto ret = rTransactP(bufferM);
     notify();
     return ret;
 }
 
-void Connection::notify()
+void Connection::Impl::notify()
 {
     for (auto& rFunc : callbacksM)
     {
@@ -145,4 +191,3 @@ void Connection::notify()
 }
 
 } /* namespace comm */
-

@@ -1,21 +1,13 @@
-#include <iostream>
-#include <unistd.h>
-#include <signal.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <cassert>
-#include <vector>
-#include <memory>
-#include <utility>
-
-#include "Socket.hpp"
 #include "Connection.hpp"
 #include "EndPoint.hpp"
-#include "Receive.hpp"
-#include "Send.hpp"
 #include "ProtocolParser.hpp"
 #include "ProtocolValidator.hpp"
+#include "Socket.hpp"
+
+#include <cassert>
+#include <cstring>
+#include <iostream>
+#include <signal.h>
 
 
 void sigint_handler(int)
@@ -27,7 +19,7 @@ void sigint_handler(int)
 int main(int argc, char** argv)
 {
     struct sigaction action;
-    memset(&action, 0, sizeof(struct sigaction));
+    std::memset(&action, 0, sizeof(struct sigaction));
     action.sa_handler = sigint_handler;
     sigaction(SIGINT, &action, NULL);
 

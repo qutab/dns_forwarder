@@ -1,14 +1,10 @@
 #pragma once
 
-#include "EndPoint.hpp"
-
-#include <netinet/in.h>
-#include <string>
-
 namespace comm {
+class EndPoint;
 
 /**
- * This class created and binds a socket connection with the given EndPoint
+ * This class creates and binds a socket connection with the given EndPoint
  */
 class Socket final
 {
@@ -21,8 +17,6 @@ public:
 
     /** @return socket file descriptor via implicit conversion */
     operator int() const;
-
-    void connect(EndPoint ep);
 
     /** Prevent copy construction and copy assignment */
     Socket(const Socket&) = delete;

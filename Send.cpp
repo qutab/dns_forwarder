@@ -1,6 +1,9 @@
 #include "Send.hpp"
 
+#include "EndPoint.hpp"
 #include "Helpers.hpp"
+
+#include <arpa/inet.h>
 
 namespace comm {
 
@@ -14,14 +17,14 @@ int Send::operator ()(std::vector<uint8_t>& rBufferP)
     auto dstAddr = rEndPointM.addr();
     socklen_t dstAddrLen = sizeof(dstAddr);
 
-    ssize_t count = sendto(rSockM,
+    const ssize_t count = sendto(rSockM,
         rBufferP.data(),
         rBufferP.size(),
         0,
         (struct sockaddr*)&dstAddr,
         dstAddrLen);
 
-    log::logIfError(count < 0, "send failed");
+    log::logSystemError(count < 0, "send failed");
 
     return count;
 }

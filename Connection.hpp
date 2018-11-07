@@ -1,54 +1,32 @@
 #pragma once
 
-//TODO: FWD Declare
-#include "Socket.hpp"
-#include "EndPoint.hpp"
-#include "Transact.hpp"
-#include "ProtocolValidator.hpp"
+#include "PublisherAbs.hpp"
 
-#include <vector>
 #include <memory>
-#include <iostream>
-#include <cassert>
-#include <unistd.h>
-#include <cstring>
-#include <sstream>
-#include <vector>
-#include <iterator>
-#include <bitset>
-#include <algorithm>
-#include <functional>
+
+namespace dns {
+class ProtocolValidator;
+} /* namespace dns */
 
 namespace comm {
-
-class Publisher
-{
-public:
-    virtual ~Publisher() = default;
-
-    using CallBack = std::function<void(std::vector<uint8_t>)>;
-
-    void subscribe(CallBack funcP)
-    {
-        callbacksM.push_back(funcP);
-    }
-
-protected:
-    virtual void notify() = 0;
-    std::vector<CallBack> callbacksM;
-};
+class EndPoint;
+class Socket;
 
 /** Represents a network connection over which data can be sent and received */
-class Connection final : public Publisher
+class Connection final : public utils::PublisherAbs
 {
 public:
     /**
-     * @param rTransactP Functor for sending/receiving data
+     * @param rSockP socket to communicate over
+     * @param sendUsP Upstream endpoint
+     * @param rValidatorP Protocol validator for reporting error conditions
      */
     Connection(const Socket& rSockP, EndPoint sendUsP, const dns::ProtocolValidator& rValidatorP);
 
+    /** virtual destructor*/
     virtual ~Connection();
 
+    /** start the connection */
     void start();
 
     /** Prevent copy construction and copy assignment */
@@ -57,35 +35,8 @@ public:
 public:
     class Impl;
     std::unique_ptr<Impl> pImplM;
-
-    void eventLoop();
-
-    void stateReceiveDs();
-    void stateSendUs();
-    void stateReceiveUs();
-    void stateSendDs();
-
-    int transact(Transact& rTransactP);
+    /**@see utils::PublisherAbs::notify */
     void notify() override;
-
-    std::vector<uint8_t> bufferM;
-
-    enum class State
-    {
-        IDLE,
-        RECV_DS,
-        SEND_US,
-        RECV_US,
-        SEND_DS
-    };
-    State stateM{State::IDLE};
-    const Socket& rSockM;
-
-    EndPoint recvDsM;
-    EndPoint sendUsM;
-    EndPoint recvUsM;
-
-    const dns::ProtocolValidator& rValidatorM;
 };
 
 } /* namespace comm */
