@@ -69,8 +69,8 @@ private:
 };
 
 Connection::Connection(const Socket& rSockP, EndPoint sendUsP, const dns::ProtocolValidator& rValidatorP)
+  : pImplM(std::make_unique<Impl>(rSockP, sendUsP, rValidatorP, callbacksM))
 {
-    pImplM = std::make_unique<Impl>(rSockP, sendUsP, rValidatorP, callbacksM);
 }
 
 Connection::~Connection() = default;
@@ -82,7 +82,7 @@ void Connection::start()
 
 void Connection::stop()
 {
-    //empty on purpose
+    // empty on purpose
 }
 
 void Connection::notify()

@@ -12,7 +12,7 @@ public:
     /**
      * @param rEndPointP EndPoint reference which is bound to the socket
      */
-    Socket(const EndPoint& rEndPointP);
+    explicit Socket(const EndPoint& rEndPointP);
     ~Socket();
 
     /** @return socket file descriptor via implicit conversion */

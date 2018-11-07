@@ -45,12 +45,13 @@ comm::EndPoint CommandLineParser::getUpstreamEp() const
     }
     catch (...)
     {
-        //pass
+        // pass
     }
 
     log::logError(usageMsg);
     std::exit(EXIT_FAILURE);
-    //avoid compiler warning, program will terminate anyway
+
+    // avoid compiler warning, program will terminate anyway
     return *static_cast<comm::EndPoint*>(nullptr);
 }
 

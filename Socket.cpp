@@ -1,3 +1,6 @@
+/**
+ * @copyright 2018 Muhammad Qutab-ud-din <qazi_qutab@hotmail.com>
+ */
 #include "Socket.hpp"
 
 #include "EndPoint.hpp"

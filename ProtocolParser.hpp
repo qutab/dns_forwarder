@@ -7,6 +7,7 @@ namespace dns {
 /**
  * DNS protocol parser.
  * The parser is stateless. It expects to receive a fully formed query in its buffer.
+ * The parser caches the results until a new query overwrites them.
  */
 class ProtocolParser: public ProtocolParserIf
 {

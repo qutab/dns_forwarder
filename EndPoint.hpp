@@ -12,11 +12,11 @@ namespace comm {
 class EndPoint final
 {
 public:
-    /** Constructs endpoint with IP @a ipAddressP and port number @a portP */
-    EndPoint(std::string ipAddressP, std::string portP);
+    /** Constructs endpoint with IP @a rIpAddressP and port number @a portP */
+    EndPoint(const std::string& rIpAddressP, const std::string& rPortP);
 
-    /** Constructs endpoint with IP @a ipAddressP and port number @a portP */
-    EndPoint(std::string ipAddressP, unsigned short portP);
+    /** Constructs endpoint with IP @a rIpAddressP and port number @a portP */
+    EndPoint(const std::string& rIpAddressP, unsigned short portP);
 
     /** @return the internet socket address */
     sockaddr_in addr() const;
