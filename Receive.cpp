@@ -4,6 +4,7 @@
 #include "Helpers.hpp"
 
 #include <arpa/inet.h>
+#include <netinet/in.h>
 
 namespace comm {
 
@@ -25,7 +26,7 @@ int Receive::operator ()(std::vector<uint8_t>& rBufferP)
         (struct sockaddr*)&srcAddr,
         &srcAddrLen);
 
-    log::logSystemError(count < 0, "recvfrom failed");
+    err::onSystemError(count < 0, "recvfrom failed");
 
     // check truncated
     if (count == static_cast<ssize_t>(bufferSize))
@@ -33,7 +34,11 @@ int Receive::operator ()(std::vector<uint8_t>& rBufferP)
         log::logWarn("Datagram too large. Truncated");
     }
 
-    rEndPointM = EndPoint(inet_ntoa(srcAddr.sin_addr), ntohs(srcAddr.sin_port));
+    char ipStr[INET_ADDRSTRLEN];
+    auto ret = inet_ntop(srcAddr.sin_family, &(srcAddr.sin_addr), ipStr, INET_ADDRSTRLEN);
+    err::onSystemError(ret == NULL, "invalid ip");
+
+    rEndPointM = EndPoint(ipStr, ntohs(srcAddr.sin_port));
 
     return count;
 }

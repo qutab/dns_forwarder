@@ -2,17 +2,21 @@
 
 #include <cassert>
 #include <cstdlib>
-#include <stdio.h>
+#include <cstdio>
 
-namespace log {
+namespace err {
 
-void logSystemError(bool errCondP, const char* pErrorMsgP)
+void onSystemError(bool errCondP, const char* pMsgP)
 {
     if (errCondP)
     {
-        perror(pErrorMsgP);
+        throw std::system_error(errno, std::generic_category(), pMsgP);
     }
 }
+
+} /** namespace err */
+
+namespace log {
 
 void logError(const char* pMsgP)
 {

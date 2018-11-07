@@ -24,13 +24,13 @@ public:
     Impl(const Socket& rSockP,
         EndPoint sendUsP,
         const dns::ProtocolValidator& rValidatorP,
-        std::vector<PublisherAbs::CallBack> callbacksP)
+        std::vector<PublisherAbs::CallBack>& rCallbacksP)
       : rSockM(rSockP),
         recvDsM("", 0),
         sendUsM(sendUsP),
         recvUsM("", 0),
         rValidatorM(rValidatorP),
-        callbacksM(std::move(callbacksP))
+        rCallbacksM(rCallbacksP)
     {
         bufferM.resize(RECV_BUFFER_SIZE);
     }
@@ -65,7 +65,7 @@ private:
     EndPoint recvUsM;
 
     const dns::ProtocolValidator& rValidatorM;
-    std::vector<CallBack> callbacksM;
+    std::vector<CallBack>& rCallbacksM;
 };
 
 Connection::Connection(const Socket& rSockP, EndPoint sendUsP, const dns::ProtocolValidator& rValidatorP)
@@ -78,6 +78,11 @@ Connection::~Connection() = default;
 void Connection::start()
 {
     pImplM->start();
+}
+
+void Connection::stop()
+{
+    //empty on purpose
 }
 
 void Connection::notify()
@@ -170,7 +175,11 @@ void Connection::Impl::stateReceiveUs()
 void Connection::Impl::stateSendDs()
 {
     Send sendDs{rSockM, recvDsM};
-    transact(sendDs);
+    auto ret = transact(sendDs);
+    if (ret >= 0)
+    {
+        log::logInfo("Handled query successfully");
+    }
     bufferM.resize(RECV_BUFFER_SIZE);
     stateM = State::RECV_DS;
 }
@@ -184,7 +193,7 @@ int Connection::Impl::transact(Transact& rTransactP)
 
 void Connection::Impl::notify()
 {
-    for (auto& rFunc : callbacksM)
+    for (auto& rFunc : rCallbacksM)
     {
         rFunc(bufferM);
     }

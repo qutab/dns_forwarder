@@ -1,18 +1,22 @@
+#include "CommandLineParser.hpp"
 #include "Connection.hpp"
 #include "EndPoint.hpp"
+#include "Helpers.hpp"
 #include "ProtocolParser.hpp"
 #include "ProtocolValidator.hpp"
 #include "Socket.hpp"
 
-#include <cassert>
-#include <cstring>
-#include <iostream>
+#include <cstring> //memset
 #include <signal.h>
 
+namespace {
+const std::string LOCAL_IP("127.0.0.1");
+const std::string LOCAL_PORT("9000");
+} /* anonymous namespace */
 
 void sigint_handler(int)
 {
-    std::cout << "sigterm received" << std::endl;
+    log::logInfo("sigint received");
     exit(EXIT_SUCCESS);
 }
 
@@ -23,30 +27,44 @@ int main(int argc, char** argv)
     action.sa_handler = sigint_handler;
     sigaction(SIGINT, &action, NULL);
 
-    std::cout << argc << std::endl;
-    std::cout << argv[1] << std::endl;
-    std::cout << argv[2] << std::endl;
-    assert(std::cout.good());
-
-    std::string upstreamIP(argv[1]);
-    std::string upstreamPort(argv[2]);
-
-    comm::EndPoint fwdingEndPoint{"127.0.0.1", 9000};
+    comm::EndPoint fwdingEndPoint{LOCAL_IP, LOCAL_PORT};
     comm::Socket fwdingSock{fwdingEndPoint};
 
-    comm::EndPoint upStreamEndPoint{upstreamIP, upstreamPort};
+    utils::CommandLineParser cliParser{argc, argv};
+
     dns::ProtocolValidator validator;
-    dns::ProtocolParser parser;
-    comm::Connection conn{fwdingSock, upStreamEndPoint, validator};
+    dns::ProtocolParser protocolParser;
+
+    comm::Connection conn{fwdingSock, cliParser.getUpstreamEp(), validator};
     conn.subscribe(
-        [&parser, &validator](auto data)
+        [&protocolParser, &validator](auto data)
         {
-            parser.parse(std::move(data));
-            validator.setId(parser.getTransId());
+            auto prevId = protocolParser.getTransId();
+            protocolParser.parse(std::move(data));
+            auto newId = protocolParser.getTransId();
+            validator.setId(newId);
+
+            if (prevId != newId)
+            {
+                log::logInfo("Transaction ID: ");
+                log::logInfo(std::hex, newId);
+            }
         }
     );
 
-    conn.start();
+    try
+    {
+        conn.start();
+    }
+    catch (const std::exception& e)
+    {
+        log::logError(e.what());
+    }
+    catch (...)
+    {
+        // pass
+    }
+    conn.stop();
 
     return EXIT_SUCCESS;
 }

@@ -29,6 +29,9 @@ public:
     /** start the connection */
     void start();
 
+    /** stop the connection */
+    void stop();
+
     /** Prevent copy construction and copy assignment */
     Connection(const Connection&) = delete;
     Connection& operator=(const Connection&) = delete;

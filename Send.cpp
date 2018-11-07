@@ -24,7 +24,7 @@ int Send::operator ()(std::vector<uint8_t>& rBufferP)
         (struct sockaddr*)&dstAddr,
         dstAddrLen);
 
-    log::logSystemError(count < 0, "send failed");
+    err::onSystemError(count < 0, "send failed");
 
     return count;
 }

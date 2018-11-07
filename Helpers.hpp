@@ -2,10 +2,13 @@
 
 #include <iostream>
 
+namespace err {
+/** Checks for system error. Throws if there is error. Prints @a pMsgP to STDERR */
+void onSystemError(bool errCondP, const char* pMsgP);
+} /** namespace err */
+
 namespace log {
 
-/** Log system error if there is any */
-void logSystemError(bool errCondP, const char* pErrorMsgP);
 /** Log error */
 void logError(const char* pMsgP);
 /** Log warning */
@@ -20,7 +23,7 @@ void logInfo(Manip&& rManipP, Msg&& rMsgP);
 template<typename Manip, typename Msg>
 void logInfo(Manip&& rManipP, Msg&& rMsgP)
 {
-    std::cout <<
+    std::cout << "[NFO] " <<
         std::forward<decltype(rManipP)>(rManipP) <<
         std::forward<decltype(rMsgP)>(rMsgP) <<
         std::endl;

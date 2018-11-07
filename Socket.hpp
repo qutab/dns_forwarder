@@ -13,7 +13,7 @@ public:
      * @param rEndPointP EndPoint reference which is bound to the socket
      */
     Socket(const EndPoint& rEndPointP);
-    ~Socket() = default;
+    ~Socket();
 
     /** @return socket file descriptor via implicit conversion */
     operator int() const;
