@@ -66,5 +66,5 @@ int main(int argc, char** argv)
     }
     conn.stop();
 
-    return EXIT_SUCCESS;
+    return EXIT_FAILURE;
 }
