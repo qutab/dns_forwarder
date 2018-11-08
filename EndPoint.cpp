@@ -3,7 +3,6 @@
 #include "Helpers.hpp"
 
 #include <arpa/inet.h>
-#include <stdexcept>
 
 namespace comm {
 
