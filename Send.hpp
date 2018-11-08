@@ -4,11 +4,12 @@
 
 namespace comm {
 
+/** A functor like object for sending data over a socket */
 class Send : public Transact
 {
 public:
     Send(const Socket& rSockP, EndPoint& rDestP);
-    ~Send() = default;
+    ~Send() override = default;
 
     int operator()(std::vector<uint8_t>& rBufferP) override;
 

@@ -9,7 +9,7 @@ class Receive : public Transact
 {
 public:
     Receive(const Socket& rSockP, EndPoint& rSenderP);
-    ~Receive() = default;
+    ~Receive() override = default;
 
     int operator()(std::vector<uint8_t>& rBufferP) override;
 

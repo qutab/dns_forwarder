@@ -24,7 +24,7 @@ public:
     Connection(const Socket& rSockP, EndPoint sendUsP, const dns::ProtocolValidator& rValidatorP);
 
     /** virtual destructor*/
-    virtual ~Connection();
+    ~Connection() override;
 
     /** start the connection */
     void start();
