@@ -48,7 +48,7 @@ comm::EndPoint CommandLineParser::getUpstreamEp() const
         // pass
     }
 
-    log::logError(usageMsg);
+    log::logInfo(usageMsg);
     std::exit(EXIT_FAILURE);
 
     // avoid compiler warning, program will terminate anyway
