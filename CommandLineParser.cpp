@@ -16,7 +16,7 @@ line arguments.
 
 enum
 {
-    PROGNAME_INDEX = 1,
+    PROGNAME_INDEX = 0,
     IP_INDEX = 1,
     PORT_INDEX = 2
 };
